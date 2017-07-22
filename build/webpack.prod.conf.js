@@ -22,27 +22,31 @@ var webpackConfig = merge(baseWebpackConfig, {
   },
   devtool: config.build.productionSourceMap ? '#source-map' : false,
   output: {
+     //导出文件目录
     path: config.build.assetsRoot,
+    //导出的文件名
     filename: utils.assetsPath('js/[name].[chunkhash].js'),
+    //非入口文件的文件名，而又需要被打包出来的文件命名配置,如按需加载的模块
     chunkFilename: utils.assetsPath('js/[id].[chunkhash].js')
   },
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html
     new webpack.DefinePlugin({
-      'process.env': env
+      'process.env': env//配置全局环境为生产环境
     }),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
+    new webpack.optimize.UglifyJsPlugin({//js文件压缩插件
+      compress: {//压缩配置
+        warnings: false// 不显示警告
       },
-      sourceMap: false
+      sourceMap: false//生成sourceMap文件
     }),
     // extract css into its own file
-    new ExtractTextPlugin({
-      filename: utils.assetsPath('css/[name].[contenthash].css')
+    new ExtractTextPlugin({//将js中引入的css分离的插件
+      filename: utils.assetsPath('css/[name].[contenthash].css')//分离出的css文件名
     }),
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
+    //压缩提取出的css，并解决ExtractTextPlugin分离出的js重复问题(多个文件引入同一css文件)
     new OptimizeCSSPlugin({
       cssProcessorOptions: {
         safe: true
@@ -51,6 +55,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
+    //生成html的插件,引入css文件和js文件
     new HtmlWebpackPlugin({
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
@@ -68,6 +73,7 @@ var webpackConfig = merge(baseWebpackConfig, {
       chunksSortMode: 'dependency'
     }),
     // split vendor js into its own file
+    //分离公共js到vendor中
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: function (module, count) {
@@ -83,6 +89,8 @@ var webpackConfig = merge(baseWebpackConfig, {
     }),
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
+      //上面虽然已经分离了第三方库,每次修改编译都会改变vendor的hash值，导致浏览器缓存失效。原因是vendor包含了webpack在打包过程中会产生一些运行时代码，运行时代码中实际上保存了打包后的文件名。当修改业务代码时,业务代码的js文件的hash值必然会改变。一旦改变必然会导致vendor变化。vendor变化会导致其hash值变化。
+  //下面主要是将运行时代码提取到单独的manifest文件中，防止其影响vendor.js
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
       chunks: ['vendor']
